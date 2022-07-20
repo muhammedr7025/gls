@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:email_password_login/bloc/cubit/db_cubit.dart';
+import 'package:email_password_login/model/db_model.dart';
 import 'package:email_password_login/model/user_model.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 import 'login_screen.dart';
@@ -16,9 +19,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   User? user = FirebaseAuth.instance.currentUser;
   UserModel loggedInUser = UserModel();
-  late double gasLevel = 0;
-  late String outflow = "safe";
-  late bool nob = true;
+  double gasLevel = 0;
+  String outflow = "safe";
+  bool nob = true;
+  DbModel? data;
   @override
   void initState() {
     super.initState();
@@ -30,6 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
       this.loggedInUser = UserModel.fromMap(value.data());
       setState(() {});
     });
+    BlocProvider.of<DbCubit>(context).fetchdb();
   }
 
   @override
@@ -39,99 +44,124 @@ class _HomeScreenState extends State<HomeScreen> {
           title: const Text("Welcome"),
           centerTitle: true,
         ),
-        body: Center(
-          child: Column(
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 130,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 40.0),
-                  child: Row(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 55.0),
-                        child: Text(
-                          "Gas outflow:",
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
+        body: BlocListener<DbCubit, DbState>(
+          listener: (context, state) {
+            if (state is DbLoaded) {
+              data = state.db;
+              setState(() {
+                outflow = 'At risk';
+                gasLevel = data!.balance;
+                nob = data!.nob;
+              });
+              print(data!.leakage == true);
+              if (data!.leakage == true) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Alert'),
+                    content: Text('There is a gas Leakage'),
+                  ),
+                );
+              }
+            }
+          },
+          child: Center(
+            child: Column(
+              children: [
+                SizedBox(
+                  width: double.infinity,
+                  height: 130,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 40.0),
+                    child: Row(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 55.0),
+                          child: Text(
+                            "Gas outflow:",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
                         ),
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      outflow == "safe"
-                          ? Container(
-                              decoration: const BoxDecoration(
-                                  color: Colors.orange,
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(15))),
-                              width: 80,
-                              height: 40,
-                              child: Center(
-                                child: Text(
-                                  "Safe",
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 30,
-                                      color: Colors.white),
+                        SizedBox(
+                          width: 10,
+                        ),
+                        outflow == "safe"
+                            ? Container(
+                                decoration: const BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(15))),
+                                width: 80,
+                                height: 40,
+                                child: Center(
+                                  child: Text(
+                                    "Safe",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 30,
+                                        color: Colors.white),
+                                  ),
                                 ),
-                              ),
-                            )
-                          : Text(
-                              "At risk",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 20,
-                                  color: Colors.red),
-                            )
-                    ],
+                              )
+                            : Text(
+                                "At risk",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    color: Colors.red),
+                              )
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              Container(
-                  child: SfRadialGauge(
-                      title: GaugeTitle(
-                          text: 'Gas level',
-                          textStyle: TextStyle(
-                              fontSize: 20.0, fontWeight: FontWeight.bold)),
-                      axes: <RadialAxis>[
-                    RadialAxis(
-                        minimum: 0,
-                        maximum: 100.001,
-                        pointers: <GaugePointer>[
-                          NeedlePointer(value: gasLevel)
-                        ],
-                        ranges: <GaugeRange>[
-                          GaugeRange(
-                              startValue: 0,
-                              endValue: 20,
-                              color: Colors.red,
-                              startWidth: 10,
-                              endWidth: 10),
-                          GaugeRange(
-                              startValue: 20,
-                              endValue: 50,
-                              color: Colors.orange,
-                              startWidth: 10,
-                              endWidth: 10),
-                          GaugeRange(
-                              startValue: 50,
-                              endValue: 100,
-                              color: Colors.green,
-                              startWidth: 10,
-                              endWidth: 10)
-                        ]),
-                  ])),
-              SizedBox(
-                height: 50,
-              ),
-              ElevatedButton(
-                style: ButtonStyle(),
-                onPressed: () {},
-                child: nob ? Text('Close') : Text('Close'),
-              ),
-            ],
+                Container(
+                    child: SfRadialGauge(
+                        title: GaugeTitle(
+                            text: 'Gas level',
+                            textStyle: TextStyle(
+                                fontSize: 20.0, fontWeight: FontWeight.bold)),
+                        axes: <RadialAxis>[
+                      RadialAxis(
+                          minimum: 0,
+                          maximum: 100.001,
+                          pointers: <GaugePointer>[
+                            NeedlePointer(value: gasLevel)
+                          ],
+                          ranges: <GaugeRange>[
+                            GaugeRange(
+                                startValue: 0,
+                                endValue: 20,
+                                color: Colors.red,
+                                startWidth: 10,
+                                endWidth: 10),
+                            GaugeRange(
+                                startValue: 20,
+                                endValue: 50,
+                                color: Colors.orange,
+                                startWidth: 10,
+                                endWidth: 10),
+                            GaugeRange(
+                                startValue: 50,
+                                endValue: 100,
+                                color: Colors.green,
+                                startWidth: 10,
+                                endWidth: 10)
+                          ]),
+                    ])),
+                SizedBox(
+                  height: 50,
+                ),
+                ElevatedButton(
+                  style: ButtonStyle(),
+                  onPressed: () {
+                    print(nob);
+                    BlocProvider.of<DbCubit>(context).create(!nob);
+                  },
+                  child: nob ? Text('Close') : Text('Open'),
+                ),
+              ],
+            ),
           ),
         ));
   }
