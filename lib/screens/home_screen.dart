@@ -1,0 +1,145 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:email_password_login/model/user_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
+
+import 'login_screen.dart';
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({Key? key}) : super(key: key);
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  User? user = FirebaseAuth.instance.currentUser;
+  UserModel loggedInUser = UserModel();
+  late double gasLevel = 0;
+  late String outflow = "safe";
+  late bool nob = true;
+  @override
+  void initState() {
+    super.initState();
+    FirebaseFirestore.instance
+        .collection("users")
+        .doc(user!.uid)
+        .get()
+        .then((value) {
+      this.loggedInUser = UserModel.fromMap(value.data());
+      setState(() {});
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: const Text("Welcome"),
+          centerTitle: true,
+        ),
+        body: Center(
+          child: Column(
+            children: [
+              SizedBox(
+                width: double.infinity,
+                height: 130,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 40.0),
+                  child: Row(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(left: 55.0),
+                        child: Text(
+                          "Gas outflow:",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      outflow == "safe"
+                          ? Container(
+                              decoration: const BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius:
+                                      BorderRadius.all(Radius.circular(15))),
+                              width: 80,
+                              height: 40,
+                              child: Center(
+                                child: Text(
+                                  "Safe",
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 30,
+                                      color: Colors.white),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              "At risk",
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 20,
+                                  color: Colors.red),
+                            )
+                    ],
+                  ),
+                ),
+              ),
+              Container(
+                  child: SfRadialGauge(
+                      title: GaugeTitle(
+                          text: 'Gas level',
+                          textStyle: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold)),
+                      axes: <RadialAxis>[
+                    RadialAxis(
+                        minimum: 0,
+                        maximum: 100.001,
+                        pointers: <GaugePointer>[
+                          NeedlePointer(value: gasLevel)
+                        ],
+                        ranges: <GaugeRange>[
+                          GaugeRange(
+                              startValue: 0,
+                              endValue: 20,
+                              color: Colors.red,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 20,
+                              endValue: 50,
+                              color: Colors.orange,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 50,
+                              endValue: 100,
+                              color: Colors.green,
+                              startWidth: 10,
+                              endWidth: 10)
+                        ]),
+                  ])),
+              SizedBox(
+                height: 50,
+              ),
+              ElevatedButton(
+                style: ButtonStyle(),
+                onPressed: () {},
+                child: nob ? Text('Close') : Text('Close'),
+              ),
+            ],
+          ),
+        ));
+  }
+
+  // the logout function
+  Future<void> logout(BuildContext context) async {
+    await FirebaseAuth.instance.signOut();
+    Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => LoginScreen()));
+  }
+}
