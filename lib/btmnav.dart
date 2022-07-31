@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:email_password_login/screens/gas_details.dart';
 import 'package:email_password_login/screens/home_screen.dart';
 import 'package:email_password_login/screens/settings.dart';
 import 'package:flutter/material.dart';

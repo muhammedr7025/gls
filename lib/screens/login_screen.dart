@@ -4,6 +4,9 @@ import 'package:email_password_login/screens/registration_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -163,6 +166,8 @@ class _LoginScreenState extends State<LoginScreen> {
   // login function
   void signIn(String email, String password) async {
     if (_formKey.currentState!.validate()) {
+      final _sharedPrefs = await SharedPreferences.getInstance();
+      _sharedPrefs.setString(LOG_KEY, 'loggedin');
       try {
         await _auth
             .signInWithEmailAndPassword(email: email, password: password)
