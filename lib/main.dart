@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+<<<<<<< HEAD
 
 const LOG_KEY = 'loggedin';
 Future<void> _firebaseMessagingBackGroundHandler(RemoteMessage message) async {
@@ -15,6 +16,14 @@ Future<void> _firebaseMessagingBackGroundHandler(RemoteMessage message) async {
   log('Handling a background message ${message.messageId}');
 }
 
+=======
+
+Future<void> _firebaseMessagingBackGroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  log('Handling a background message ${message.messageId}');
+}
+
+>>>>>>> 4d1cdab9b19a8fd4ad53742530b1e52910584a15
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
     FlutterLocalNotificationsPlugin();
 const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -30,6 +39,17 @@ const AndroidNotificationChannel channel = AndroidNotificationChannel(
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackGroundHandler);
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
+  await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+    alert: true,
+    badge: true,
+    sound: true,
+  );
 
   await flutterLocalNotificationsPlugin
       .resolvePlatformSpecificImplementation<
@@ -56,7 +76,11 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.red,
         ),
         debugShowCheckedModeBanner: false,
+<<<<<<< HEAD
         home: SplashScreen(),
+=======
+        home: LoginScreen(),
+>>>>>>> 4d1cdab9b19a8fd4ad53742530b1e52910584a15
       ),
     );
   }

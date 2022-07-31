@@ -20,7 +20,11 @@ class _HomeScreenState extends State<HomeScreen> {
   User? user = FirebaseAuth.instance.currentUser;
   UserModel loggedInUser = UserModel();
   double gasLevel = 0;
+<<<<<<< HEAD
   bool outflow = true;
+=======
+  String outflow = "safe";
+>>>>>>> 4d1cdab9b19a8fd4ad53742530b1e52910584a15
   bool nob = true;
   DbModel? data;
   @override
@@ -49,7 +53,11 @@ class _HomeScreenState extends State<HomeScreen> {
             if (state is DbLoaded) {
               data = state.db;
               setState(() {
+<<<<<<< HEAD
                 outflow = data!.leakage;
+=======
+                outflow = 'At risk';
+>>>>>>> 4d1cdab9b19a8fd4ad53742530b1e52910584a15
                 gasLevel = data!.balance;
                 nob = data!.nob;
               });
@@ -86,7 +94,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         SizedBox(
                           width: 10,
                         ),
+<<<<<<< HEAD
                         outflow == false
+=======
+                        outflow == "safe"
+>>>>>>> 4d1cdab9b19a8fd4ad53742530b1e52910584a15
                             ? Container(
                                 decoration: const BoxDecoration(
                                     color: Colors.orange,
