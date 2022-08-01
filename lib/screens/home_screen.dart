@@ -1,3 +1,4 @@
+import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_password_login/bloc/cubit/db_cubit.dart';
 import 'package:email_password_login/model/db_model.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool outflow = true;
   bool nob = true;
   DbModel? data;
+  int count = 0;
   @override
   void initState() {
     super.initState();
@@ -39,6 +41,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if (!isAllowed) {
+        // This is just a basic example. For real apps, you must show some
+        // friendly dialog box before call the request method.
+        // This is very important to not harm the user experience
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    });
     return Scaffold(
         appBar: AppBar(
           title: const Text("Welcome"),
@@ -48,6 +58,9 @@ class _HomeScreenState extends State<HomeScreen> {
           listener: (context, state) {
             if (state is DbLoaded) {
               data = state.db;
+              if (data!.leakage == true) {
+                count = 1;
+              }
               setState(() {
                 outflow = data!.leakage;
                 gasLevel = data!.balance;
@@ -55,14 +68,23 @@ class _HomeScreenState extends State<HomeScreen> {
               });
               print(data!.leakage == true);
               if (data!.leakage == true) {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('Alert'),
-                    content: Text('There is a gas Leakage'),
-                  ),
-                );
+                if (count == 1) {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: Text('Alert'),
+                      content: Text('There is a gas Leakage'),
+                    ),
+                  );
+                }
+                AwesomeNotifications().createNotification(
+                    content: NotificationContent(
+                        id: 10,
+                        channelKey: 'basic_channel',
+                        title: 'Gas Leakage',
+                        body: 'Gas Leakage Detected'));
               }
+              count = 2;
             }
           },
           child: Center(
