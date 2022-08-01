@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:bloc/bloc.dart';
 import 'package:email_password_login/model/db_model.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 
@@ -30,16 +31,18 @@ class DbCubit extends Cubit<DbState> {
     }
   }
 
-  create(bool value) async {
+  update(bool value) async {
     emit(DbInitial());
     emit(Dbloading());
     var url = 'https://gls-app-566d3-default-rtdb.firebaseio.com/gls.json';
     try {
-      print(value);
-      final response = await http.post(
-        Uri.parse(url),
-        body: json.encode({'nob': true}),
-      );
+      // print(value);
+      // final response = await http.post(
+      //   Uri.parse(url),
+      //   body: json.encode({'nob': true}),
+      // );
+      var firebasedb = FirebaseDatabase.instance;
+      firebasedb.ref().set({'nob': true});
       emit(DbLoaded(db: db!));
     } catch (e) {
       emit(DbFailed(error: e.toString()));

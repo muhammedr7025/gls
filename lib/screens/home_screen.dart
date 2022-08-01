@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   bool outflow = true;
   bool nob = true;
   DbModel? data;
-  int count = 0;
+  int count = 1;
   @override
   void initState() {
     super.initState();
@@ -42,9 +42,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   init() async {
-    Timer.periodic(Duration(seconds: 5), (timer) {
-      BlocProvider.of<DbCubit>(context).fetchdb();
-    });
+    Timer.periodic(Duration(seconds: 5),
+        (timer) => BlocProvider.of<DbCubit>(context).fetchdb());
   }
 
   @override
@@ -66,8 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
           listener: (context, state) {
             if (state is DbLoaded) {
               data = state.db;
-              if (data!.leakage == true) {
-                count = 1;
+              if (data!.leakage == false) {
+                count = 0;
               }
               setState(() {
                 outflow = data!.leakage;
@@ -203,7 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   style: ButtonStyle(),
                   onPressed: () {
                     print(nob);
-                    BlocProvider.of<DbCubit>(context).create(!nob);
+                    BlocProvider.of<DbCubit>(context).update(!nob);
                   },
                   child: nob ? Text('Close') : Text('Open'),
                 ),
