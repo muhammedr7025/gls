@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:email_password_login/bloc/cubit/db_cubit.dart';
@@ -36,7 +38,13 @@ class _HomeScreenState extends State<HomeScreen> {
       this.loggedInUser = UserModel.fromMap(value.data());
       setState(() {});
     });
-    BlocProvider.of<DbCubit>(context).fetchdb();
+    init();
+  }
+
+  init() async {
+    Timer.periodic(Duration(seconds: 5), (timer) {
+      BlocProvider.of<DbCubit>(context).fetchdb();
+    });
   }
 
   @override
@@ -85,6 +93,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         body: 'Gas Leakage Detected'));
               }
               count = 2;
+              if (data!.balance < 20) {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: Text('Alert'),
+                    content: Text(
+                        'Your gas level is too low Please book another cylinder.'),
+                    actions: [
+                      ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Ok'))
+                    ],
+                  ),
+                );
+              }
             }
           },
           child: Center(
